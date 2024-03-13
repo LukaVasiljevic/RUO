@@ -1,0 +1,16 @@
+docker build -t [name-of-an-image] . 
+docker run -p [local-port]:[docker-port] [name-of-an-image]
+docker exec -it [container-id] bash
+docker rm -f [container-name]
+docker-compose up
+docker-compose up --build to rebuild the apps 
+
+
+postgre container: 
+psql -h localhost -U postgres
+
+\l list available databases
+\q exit postgres terminal
+\c [db-name] attach to a database
+\d list tables
+\d [table] describes a table
