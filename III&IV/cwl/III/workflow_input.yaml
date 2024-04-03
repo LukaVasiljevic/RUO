@@ -1,0 +1,5 @@
+in_csv:
+ class: File
+ path: HousingData.csv
+col_name: ALL
+tr_ratio: 0.8

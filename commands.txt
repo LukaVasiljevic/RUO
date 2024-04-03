@@ -5,6 +5,8 @@ docker rm -f [container-name]
 docker-compose up
 docker-compose up --build to rebuild the apps 
 
+docker tag cwl-python-env lukavasiljevic/cwl-python-env:latest
+docker push lukavasiljevic/cwl-python-env:latest
 
 postgre container: 
 psql -h localhost -U postgres
@@ -14,3 +16,20 @@ psql -h localhost -U postgres
 \c [db-name] attach to a database
 \d list tables
 \d [table] describes a table
+
+
+how to save a new image:
+docker run -it luka_debian:0.2.1 /bin/bash
+[do some commands you wish to preserve within the container, then 'exit', and commit]
+docker commit cd231bef5895 luka_debian:0.1
+
+docker run -it luka_debian:0.1 /bin/bash
+
+
+start docker: systemctl start docker
+
+
+cwl commands:
+cwltool step1.cwl --python_file step1.py --csv_file HousingData.csv --column_name ALL
+cwltool step2.cwl --python_file step2.py --csv_file output.csv --training_ratio 0.8
+cwltool first_workflow.cwl workflow_input.yaml

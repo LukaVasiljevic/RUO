@@ -1,24 +1,20 @@
 cwlVersion: v1.2
 class: CommandLineTool
-baseCommand: ["python"]
+baseCommand: ["python", "/app/step_1.py"]
 hints:
   DockerRequirement:
     dockerPull: lukavasiljevic/cwl-python-env
 inputs:
-  python_file:
-   type: File
-   inputBinding:
-    position: 1
   csv_file:
     type: File
     inputBinding:
       position: 2
-  training_ratio:
-    type: float
+  column_name:
+    type: string
     inputBinding:
       position: 3
 
 outputs:
-  output_metrics:
+  output_csv:
     type: stdout
-stdout: metrics.txt
+stdout: output.csv
