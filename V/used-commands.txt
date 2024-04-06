@@ -1,0 +1,5 @@
+k apply -f configmap.yaml
+k apply -f calc-job.yaml
+k describe job calc-job
+k logs [job_pod]
+k delete job calc-job

@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: calc-job
+spec:
+  parallelism: 10
+  completions: 10
+  template:
+    spec:
+      volumes:
+        - name: dataset-volume
+          configMap:
+            name: dataset-configmap
+      containers:
+        - name: calc-container
+          image: lukavasiljevic/cwl-python-env:v
+          # imagePullPolicy: Always # enable when image changes
+          command: ["python", "/app/calc_v.py"]
+          args: ["test1234"]
+          env:
+            - name: DATASET_PATH
+              value: "/data/in.csv"
+            - name: RANDOM_STATE
+              value: "0"
+          volumeMounts:
+            - name: dataset-volume
+              mountPath: /data
+              readOnly: true
+      restartPolicy: Never
+  backoffLimit: 4
