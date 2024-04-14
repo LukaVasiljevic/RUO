@@ -1,0 +1,12 @@
+k apply -f configmap.yaml
+k apply -f calc-job.yaml
+k describe job calc-job
+k logs [job_pod]
+k delete job calc-job
+k create configmap dataset-configmap --from-file=in.csv
+
+
+k get pv
+k delete persistentvolumeclaim task-pv-claim
+k delete persistentvolume task-pv-volume
+k get svc

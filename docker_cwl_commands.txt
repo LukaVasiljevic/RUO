@@ -33,3 +33,6 @@ cwl commands:
 cwltool step1.cwl --python_file step1.py --csv_file HousingData.csv --column_name ALL
 cwltool step2.cwl --python_file step2.py --csv_file output.csv --training_ratio 0.8
 cwltool first_workflow.cwl workflow_input.yaml
+
+
+scp [host_path] [user@host:/remote-path]

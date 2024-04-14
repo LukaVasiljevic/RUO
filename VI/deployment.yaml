@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: task-pv-claim
+      containers:
+      - name: flask-app
+        image: lukavasiljevic/cwl-python-env:vi
+          # imagePullPolicy: Always # enable when image changes
+        command: ["python", "/app/app.py"]
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DATASET_PATH
+          value: "/home/lukav/vi/persistent/data/wine-quality-white-and-red.csv"
+        - name: MODEL_PATH
+          value: "/home/lukav/vi/persistent/model/mlp_classifier_with_scaler.pkl"
+        volumeMounts:
+          - mountPath: "/home/lukav/vi/persistent"
+            name: task-pv-storage
+
+

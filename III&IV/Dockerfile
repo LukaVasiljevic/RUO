@@ -2,8 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN pip install pandas scikit-learn numpy
+COPY requirements.txt /app
 
-COPY py/III/ /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY py/IV/ /app/
+COPY py/docker_py_files /app/

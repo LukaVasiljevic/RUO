@@ -1,0 +1,10 @@
+- create folders (/persistent/data and /persistent/model)
+- create PV (pv-volume.yaml)
+- create PVC (pv-claim.yaml)
+- apply PV & PVC 
+k apply -f [file]
+- create deployment (deployment.yaml)
+- create service (service.yaml)
+- apply deployment & service
+
+outside access -> http://{node-ip}:{node-port}
