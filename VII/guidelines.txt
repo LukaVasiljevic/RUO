@@ -1,0 +1,34 @@
+I codebase
+- use version control 
+- repo per app
+II dependencies
+- explicitly declared and isolated. never use system-wide packages
+III configuration - anything that changes between deployment envs
+strictly separated from code 
+belongs to env, not app
+test - can you make your app open-source without compromising any credentials?
+IV backing services (db, redis, memcached)
+attachable resources via single url stored as ENV var 
+V build, release, run - deployment process should be executed in three discrete steps
+
+build processes ^
+app architecture 
+
+VI processes
+should be stateless
+VII port binding
+app is self-contained. it exports HTTP as a service by binding to a port
+VIII concurrency
+diversifying workload. decomposing app to individual apps that do part of work well
+IX disposability
+quick to startup
+grafecul shutdown - when it receive terminating signal, release resources, clean connections 
+resilient to failure - if above mentioned characteristics are satisfied, app is resilient to failure
+servers are cattle, not pets 
+X dev/prod parity (important)
+all envs should be identical. 
+parity -> reproducibility (mostly) -> disposability
+XI logs
+
+XII admin processes
+run as isolated processes 

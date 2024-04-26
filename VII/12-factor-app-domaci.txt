@@ -1,0 +1,114 @@
+Aplikacija koju nameravam opisati je izmisljena. Sastojace se iz delova aplikacija sa kojima sam se susretao. 
+Svoje iskustvo cu pokusati da obogatim licnim idejama za razvoj softvera i mastom.
+
+Neka bude da se aplikacija zove Y i da predstavlja jedan vazan servis u mikroservisnoj arhitekturi. U slucaju 
+otkazivanja ovog servisa kompromituje se funkcionisanje cele platforme. Bitno da Y aplikacija bude veoma stabilna, 
+stoga je doneta odluka na nivou kompanije da se pokusa sa primenom principa dvanaestofaktorskih aplikacija. Cela
+ platforma za razvoj koristi vise testnih i jedno produkciono okruzenje.
+
+
+I codebase
+Aplikacija Y koristi git za potrebe pracenje verzija koda. U skladu sa prvim principom, postoji jedinstvena 
+osnova koda za aplikaciju Y na svakom okruzenju. Primera radi, neki komitovi sa prvog testnog okruzenja 
+se ne nalaze na drugom testnom okruzenju, onda komitovi sa drugog se ne verovatno ne nalaze na produkcionom 
+okruzenju, sto ne menja cinjenicu da se u osnovi nalazi ista aplikacija sa isporucenim razlicitim verzijama
+na razlicitim okruzenjima.
+
+
+II dependencies
+Aplikacija Y se razvija u Springboot razvojnom okviru Java programskog jezika. Gradle je alatka koja se koristi 
+za vise potreba, ali u kontekstu drugog principa dvanaestofaktorskih aplikacija, koriscena je za navodjenje, 
+instalaciju i azuriranje programa/biblioteka od kojih aplikacija Y zavisi. Ovaj princip se zalaze za dve stvari: 
+- eksplicitno deklarisanje zavisnosti (postoji u build.gradle fajlu), i 
+- izolacija zavisnosti (u direktorijumu aplikacije se instaliraju sve zavisnosti navedene u build.gradle fajlu, i na 
+   taj nacin smo sigurni da se one koriste iskljucivo za potrebe nase aplikacije).
+U drugu ruku, kontejnerizacijom projekta (doker) smo sigurni da ce u datom kontejneru svaki instaliran program/biblioteka 
+biti koriscen iskljucivo od strane nase aplikacije Y. 
+
+
+III configuration
+Kao sto smo pomenuli kod prvog principa, ista osnova (kod; istih ili razilcitih verzija) ce biti koriscena na vise okruzenja. 
+U treci princip, kao konfiguracija aplikacije, se ubrajaju api-kljucevi, kredencijali, linkovi za pristup kesu, bazi,
+razlicite tajne i promenljive okruzenja. Ovaj princip se strogo zalaze za odvajanje konfiguracije aplikacije od koda
+aplikacije, jer konfiguracija se moze menjati kroz okruzenja, dok kod ne. Pokazatelj da li je ovaj princip zadovoljen se
+ogleda u rezultatu sledeceg testa -> kada bi kod aplikacije Y postao open-source projekat istog trenutka, da li bi se 
+kompromitovali bilo kakvi kredencijali?
+
+Za potrebe cuvanja konfiguracije nase Y aplikacije, koriste se promenljive okruzenja (env vars) i Vault (za cuvanje 
+poverljivih informacija, kao sto su api kljucevi i kredencijali za bazu)
+
+Odvajanje konfiguracije od koda znaci da se kod moze pokrenuti na bilo kojoj masini, sve dok ona ima pristup neophodnoj 
+konfiguraciji. Jos jedna prednost je to sto je moguce da se osetljive informacije cuvaju van gita/koda i da se skladiste na 
+bezbedan nacin (npr u Vault-u).
+
+
+IV backing services
+Sustina ovog principa se ogleda u posmatranju 'pomocnih' servisa kao prikljucenih resursa radije nego kao deo aplikacije.
+Nasa aplikacija koristi Redis za kes i Postgres kao bazu podataka. Razlicita okruzenja koriste razlicite baze i kes 
+(na razlicitim lokacijama). Nedavno se desio incident na produkciji koji je zahtevao hitnu intervenciju - prelazak sa 
+glavne na back-up bazu. Ova akcija je izvrsena relativno bezbedno, bez ikakvih promena u aplikaciji jer sam ovaj 
+princip je ispostovan - baza je tretirana kao resurs koji se lako moze zameniti, a ne kao deo aplikacije. 
+
+
+V build, release, run 
+Kod se osposobljava za rad (pokrece) kroz 3 staze navedene u naslovu ove sekcije. Prva faza predstavlja bildovanje, 
+odnosno pravljenje Y.jar fajla. Sledeca faza spaja jar fajl sa odgovarajucom konfiguracijom i priprema kod za izvrsavanje.
+U drugoj fazi se takodje dodeljuje tag verzije nasem kodu - za produkciono okruzenje se koristi inkrementalni pristup i 
+prefiks 'r' (npr. r-10, r-224). Poslednji korak predstavlja pokretanje java aplikacije u JVM u odredjenom okruzenju.
+Prva faza je inicirana dodavanjem novog koda. Druga i treca faza se vrse automatski ili rucno - zavisno od situacije. 
+Ako se radi o restartu Y aplikacije, mozemo ocekivati da ce do toga doci automatski. Ako je potrebno da tek nakon testiranja 
+odredjena verzija koda bude pustena na produkciono okruzenje, poslednja akcija ce biti izvrsena rucno. 
+
+
+VI processes 
+Izvrsavanje aplikacije kao jedan ili vise procesa bez stanja. Ovaj princip se zalaze za to da procesi ne cuvaju stanja; ako 
+je neophodno cuvanje, neka bude sacuvano u bazi ili nekom drugom 'backing' servisu. Svaka akcija na aplikaciji Y se tretira 
+prosto kao transakcija cije se krajnje stanje cuva u bazi ili kes-memoriji. Nijedno stanje u kom je aplikacija pre cuvanja 
+u bazi nije i ne sme biti relevantno za rad bilo kog drugog procesa. Neophodno je postovati ovaj princip jer u bilo kom 
+slucaju prestanka rada aplikacije (greska u kodu, restart aplikacije, pokretanje nove verzije na datom okruzenju) dolazi 
+do gubljenja trenutnog stanja aplikacije - sto je i vise nego dovoljno da sa dozom rezerve koristimo memoriju aplikacije 
+za cuvanje stanja.  
+
+
+VII port binding
+Izlaganje servisa preko porta. U nasem slucaju, aplikacija Y u sebi sadrzi netty veb server pomocu kog prihvata zahteve 
+spoljasnje sredine. 
+
+
+VIII concurrency
+Konkurentnost je kljucna za nesmetano funkcionisanje i organski rast nase platforme. Za potrebe ovog principa cemo posmatrati 
+siri ekosistem mikroservisa gde je do sad opisivana aplikacija Y samo jedna od nekoliko desetina. U okviru ove arhitekture, 
+svaki mikroservis/aplikacija funkcionise nezavisno. Sirom cele platforme se koristi arhitekturu mikroservisa gde svaki servis 
+autonomno upravlja svojom konkurentnoscu.
+
+Komunikacija između servisa omogucena je kroz Apache Kafka sistem za razmenu poruka/dogadjaja. Nase aplikacije su razvijene na
+ reaktivan nacin koristeći Reactor biblioteku, sto omogucava da gotovo svi pozivi budu asinhroni. Dodatno, pridrzavajuci se 
+ principa horizontalne skalabilnosti, koristimo Kubernetes kako bismo implementirali više instanci istog mikroservisa po potrebi,
+sto pomaze u balansiranju opterecenja.
+
+
+IX disposability
+Povecati robustnost aplikacije sa brzim pokretanjem i elegantnim gasenjem (graceful shutdown).
+Postovanjem ova dva principa se postuje i ideja koja se nalazi iza IX faktora - otpornost na kvarove. Brzo pokretanje se moze 
+jednostavno odrediti - merenjem vremena od pokretanja aplikacije pomocu komandne linije do trenutka kada je aplikacija spremna
+da prima zahteve korisnika. Elegantno gasenje predstavlja oslobadjanje svih zauzetih resursa, odbijanje novih zahteva tokom gasenja,
+brisanje aktivnih konekcija i slicno.
+
+
+X dev/prod parity 
+Ovaj princip se odnosi na to da sva okruzenja (produkciona i testna) treba da budu sto slicnija moguca. Neophodno je da su iste
+zavisnosti i pomocni servisi na svim okruzenjima. Ovakav pristup omogucava lako uocavanje i reprodukciju problema sa produkcionog 
+okruzenja na testno. 
+
+
+XI logs
+Tretiraj logove kao dogadjaje. 
+Nasa aplikacija Y prikuplja logove pomocu Grafane - open-source resenja za pracenje sistema, prikupljanje, analizu i vizuelizaciju logova.
+
+
+XII admin processes
+Administrativni procesi koje aplikacija Y ima su uglavnom migracije za bazu i Kafku. Ovi procesi se definisu u kodu gde je i ostatak
+aplikacije. Ovi procesi su jednokratni i ne uticu na rad same aplikacije. Postoje odredjeni mehanizmi (lock-ovi) kojima se definise 
+kad i kako ce se ovi procesi izvrsiti. Na primer, svi procesi su jednokratni te kako jedna instanca aplikacije bude u mogucnosti da 
+izvrsi administrativni zadatak, pomocu jednostavnog zakljucavanja obavestava ostale instance da je taj zadatak u toku i na taj nacin 
+sprecavamo visestruko izvrsavanje jednokratnog zadatka. 
