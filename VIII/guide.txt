@@ -1,0 +1,8 @@
+1. set up a Apache Zookeeper on Win 
+https://shaaslam.medium.com/installing-apache-zookeeper-on-windows-45eda303e835
+2. run `zkserver` command in elevated (as admin) terminal
+3. connect to zkserver with `zkCli` command. // --server 127.0.0.1:2181
+an example command line when connected [zk: localhost:2181(CONNECTED) 0]
+4. java "-Dserver.port=8083" "-Dzk.url=localhost:2181" "-Dleader.algo=2" -jar .\target\bkatwal-zookeeper-demo-1.0-SNAPSHOT.jar
+command to start java service
+5. check nodes in zk - ls /liveNodes
